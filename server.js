@@ -96,6 +96,18 @@ app.post('/api/tasks/:id/suggest-subtasks', (req, res) => {
   res.json({ taskId: task.id, provider: 'demo', subtasks: task.subtasks });
 });
 
+app.patch('/api/tasks/:id/subtasks/:subtaskId', (req, res) => {
+  if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body) || typeof req.body.completed !== 'boolean') {
+    throw new ApiError(400, 'VALIDATION_ERROR', 'completed must be a boolean');
+  }
+  const task = getTask(req.params.id);
+  const subtask = task.subtasks.find(item => item.id === req.params.subtaskId);
+  if (!subtask) throw new ApiError(404, 'SUBTASK_NOT_FOUND', 'Subtask not found');
+  subtask.completed = req.body.completed;
+  task.updatedAt = new Date().toISOString();
+  res.json({ task: serialize(task), subtask: { ...subtask } });
+});
+
 app.use('/api', (req, res, next) => next(new ApiError(404, 'ROUTE_NOT_FOUND', 'API endpoint not found')));
 app.use(express.static(__dirname, { index: false, dotfiles: 'deny', maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0 }));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
