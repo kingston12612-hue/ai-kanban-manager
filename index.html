@@ -290,8 +290,6 @@ board.addEventListener('click', event => {
     return;
   }
 
-  const checkbox = event.target.closest('input[data-subtask]');
-  if (checkbox) toggleSubtask(checkbox.dataset.task, checkbox.dataset.subtask, checkbox.checked);
 });
 
 board.addEventListener('change', event => {
