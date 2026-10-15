@@ -7,7 +7,7 @@ const { once } = require('node:events');
 delete process.env.OPENAI_API_KEY;
 
 const { server, tasks } = require('../server.js');
-const listening = server.listening ? Promise.resolve() : once(server, 'listening');
+const listening = server.listening && server.address() ? Promise.resolve() : once(server, 'listening');
 
 test('Kanban API and frontend smoke tests', async t => {
   await listening;
@@ -96,7 +96,11 @@ test('Kanban API and frontend smoke tests', async t => {
   });
 
   await t.test('returns structured 404 errors for missing tasks', async () => {
-    const response = await fetch(base + '/api/tasks/missing-id');
+    const response = await fetch(base + '/api/tasks/missing-id', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ column: 'done' })
+    });
     assert.equal(response.status, 404);
     assert.equal((await response.json()).error.code, 'TASK_NOT_FOUND');
   });
