@@ -246,7 +246,7 @@ async function suggestSubtasks(id) {
       task.subtasksGenerated = true;
     }
     render();
-    toast('Подзадачи готовы. Отметьте выполненные пункты.');
+    toast(data.provider === 'openai' ? 'ИИ создал подзадачи. Отметьте выполненные пункты.' : 'Подзадачи созданы по резервному шаблону. Для ИИ добавьте OPENAI_API_KEY.');
   } catch (error) {
     toast(error.message, 'error');
   } finally {
@@ -267,7 +267,7 @@ async function toggleSubtask(taskId, subtaskId, completed) {
       body: JSON.stringify({ completed })
     });
   } catch {
-    toast('Изменение отмечено только в текущем интерфейсе: API пока не сохраняет чекбоксы.', 'error');
+    toast('Не удалось сохранить отметку на сервере. Проверьте соединение.', 'error');
   }
 }
 
