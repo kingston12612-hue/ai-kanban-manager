@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f7f5">
+<meta name="description" content="Умный канбан-менеджер задач с генерацией подзадач.">
+<title>Flowboard — Умный таск-менеджер</title>
+<style>
+:root{color-scheme:light;--bg:#f7f7f5;--surface:#fff;--text:#242424;--muted:#858585;--border:#e9e9e6;--accent:#6257e8;--accent-hover:#5045d3;--accent-soft:#f0efff;--green:#25865b;--green-soft:#e8f6ed;--orange:#b66c27;--orange-soft:#fff2e5;--shadow:0 3px 12px #19191909}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:14px Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}button,input,textarea,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #6257e844;outline-offset:2px}.topbar{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 34px;background:#ffffffed;border-bottom:1px solid var(--border);gap:18px}.brand{display:flex;align-items:center;gap:11px;font-size:17px;font-weight:750;letter-spacing:-.6px}.brand-mark{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;color:#fff;background:var(--accent);font-size:18px}.top-right{display:flex;align-items:center;gap:16px}.status{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px}.dot{width:7px;height:7px;border-radius:50%;background:#32a56d}.dot.offline{background:#d56b59}.avatar{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#eae8ff;color:#5145c9;font-weight:700}.main{max-width:1500px;margin:0 auto;padding:38px 34px 56px}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1.6px;font-weight:750;color:var(--accent);margin-bottom:10px}.heading-row{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:28px}.heading-row h1{font-size:32px;letter-spacing:-1.2px;margin:0 0 8px;font-weight:760}.subtitle{margin:0;color:var(--muted);font-size:14px}.primary,.secondary,.icon-button,.move-button{border:0;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,transform .15s}.primary{padding:11px 16px;background:var(--accent);color:white;font-weight:650;box-shadow:0 2px 4px #6257e822}.primary:hover{background:var(--accent-hover)}.primary:active,.secondary:active{transform:translateY(1px)}.secondary{padding:9px 11px;background:#f6f6f5;border:1px solid var(--border);color:#555;font-size:12px;font-weight:600}.secondary:hover{background:var(--accent-soft);color:var(--accent)}.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}.stat{padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:11px;min-width:115px}.stat strong{font-size:20px;letter-spacing:-.5px;display:block;margin-bottom:3px}.stat span{font-size:11px;color:var(--muted)}.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start}.column{min-width:0;border:1px solid var(--border);background:#f0f0ed;border-radius:14px;padding:13px;min-height:360px;transition:background .15s,border-color .15s}.column.drag-over{background:#eae8ff;border-color:#a8a0ff}.column-head{display:flex;align-items:center;justify-content:space-between;padding:4px 3px 13px}.column-title{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:750}.column-dot{width:9px;height:9px;border-radius:3px;background:#a4a4a0}.column[data-column="in-progress"] .column-dot{background:#e4a14b}.column[data-column="done"] .column-dot{background:#4ca77a}.count{display:grid;place-items:center;min-width:23px;height:23px;padding:0 6px;border-radius:7px;background:#e4e4e0;color:#73736d;font-size:11px;font-weight:700}.task-list{display:flex;flex-direction:column;gap:10px;min-height:290px}.task-card{background:var(--surface);border:1px solid #e7e7e4;border-radius:11px;padding:15px;box-shadow:var(--shadow);cursor:grab;min-width:0;animation:appear .18s ease}.task-card:active{cursor:grabbing}.task-card.dragging{opacity:.4}.task-card h3{font-size:14px;line-height:1.45;margin:0 0 7px;font-weight:700;overflow-wrap:anywhere}.task-description{font-size:12px;line-height:1.6;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 13px}.task-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.tag{font-size:10px;font-weight:700;padding:5px 7px;border-radius:6px;background:#f0efff;color:#6257d9}.task-date{font-size:10px;color:#a0a09a}.card-actions{display:flex;flex-wrap:wrap;gap:7px;border-top:1px solid #f0f0ee;padding-top:11px}.ai-button{background:var(--accent-soft);color:#574bc9;border:1px solid #e6e3ff;border-radius:7px;padding:7px 9px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px}.ai-button:hover{background:#e5e2ff}.ai-button:disabled{opacity:.6;cursor:wait}.move-button{width:27px;height:27px;background:#f5f5f3;color:#62625c;border:1px solid var(--border);font-size:14px}.move-button:hover{background:#ecebff;color:var(--accent)}.subtasks{margin-top:12px;padding:11px;border-radius:9px;background:#fafaff;border:1px solid #eceaff}.subtasks-heading{font-size:11px;font-weight:750;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between}.subtask{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid #eeedf7;font-size:12px;line-height:1.45;color:#57566a}.subtask:last-child{border-bottom:0}.subtask input{accent-color:var(--accent);margin:2px 0 0;flex-shrink:0}.subtask label{cursor:pointer;overflow-wrap:anywhere}.subtask input:checked+label{color:#a1a0ae;text-decoration:line-through}.empty{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#aaa9a2;font-size:12px;min-height:150px;text-align:center;border:1px dashed #d9d9d4;border-radius:10px;padding:18px}.empty-symbol{font-size:23px;color:#c2c1ba}.footer-note{margin-top:22px;text-align:center;font-size:11px;color:#a09f98}.toast-region{position:fixed;right:20px;bottom:20px;z-index:10;display:flex;flex-direction:column;gap:9px;max-width:min(360px,calc(100vw - 40px))}.toast{background:#25252b;color:#fff;padding:13px 16px;border-radius:10px;box-shadow:0 8px 25px #0002;font-size:13px;line-height:1.5;animation:appear .2s ease}.toast.error{background:#8f302d}.modal-backdrop{position:fixed;inset:0;background:#17171d66;display:none;align-items:center;justify-content:center;padding:18px;z-index:20}.modal-backdrop.open{display:flex}.modal{width:100%;max-width:460px;background:white;border-radius:16px;padding:24px;box-shadow:0 20px 80px #0002}.modal h2{font-size:20px;letter-spacing:-.5px;margin:0 0 7px}.modal-copy{color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 20px}.field{display:flex;flex-direction:column;gap:7px;margin-bottom:15px}.field label{font-size:12px;font-weight:700;color:#50504c}.field input,.field textarea{width:100%;border:1px solid #deded9;border-radius:9px;background:#fff;padding:11px 12px;color:var(--text)}.field textarea{resize:vertical;min-height:90px;line-height:1.5}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.modal-actions .secondary{padding:10px 14px}.modal-actions .primary{padding:10px 15px}.icon-text{font-size:15px;line-height:1}@keyframes appear{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}@media(max-width:850px){.main{padding:28px 20px 40px}.topbar{padding:0 20px}.board{grid-template-columns:1fr;gap:13px}.column{min-height:0}.task-list{min-height:75px}.empty{min-height:95px}.heading-row h1{font-size:28px}}@media(max-width:520px){.topbar{height:60px;padding:0 15px}.brand{font-size:15px}.top-right{gap:9px}.status{font-size:0}.status .dot{width:8px;height:8px}.main{padding:24px 14px 34px}.heading-row{align-items:flex-start;flex-direction:column}.heading-row h1{font-size:27px}.heading-row .primary{width:100%}.stat{flex:1;min-width:85px;padding:10px 12px}.stat strong{font-size:18px}.column{padding:10px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="brand-mark">✳</div><span>flowboard</span></div>
+  <div class="top-right"><div class="status"><span id="statusDot" class="dot"></span><span id="statusText">Подключение…</span></div><div class="avatar" aria-label="Профиль">F</div></div>
+</header>
+<main class="main">
+  <div class="heading-row">
+    <div><div class="eyebrow">Рабочее пространство</div><h1>Мои задачи</h1><p class="subtitle">Планируйте работу. Двигайтесь вперёд. Используйте ИИ для идей.</p></div>
+    <button class="primary" id="openCreate"><span class="icon-text">＋</span> Новая задача</button>
+  </div>
+  <section class="stats" aria-label="Статистика">
+    <div class="stat"><strong id="totalStat">0</strong><span>Всего задач</span></div>
+    <div class="stat"><strong id="progressStat">0</strong><span>В процессе</span></div>
+    <div class="stat"><strong id="doneStat">0</strong><span>Завершено</span></div>
+    <div class="stat"><strong id="subtaskStat">0%</strong><span>Подзадач выполнено</span></div>
+  </section>
+  <section class="board" id="board" aria-label="Канбан-доска">
+    <section class="column" data-column="backlog"><div class="column-head"><div class="column-title"><span class="column-dot"></span>Бэклог <span class="count" id="count-backlog">0</span></div></div><div class="task-list" id="list-backlog"></div></section>
+    <section class="column" data-column="in-progress"><div class="column-head"><div class="column-title"><span class="column-dot"></span>В процессе <span class="count" id="count-in-progress">0</span></div></div><div class="task-list" id="list-in-progress"></div></section>
+    <section class="column" data-column="done"><div class="column-head"><div class="column-title"><span class="column-dot"></span>Готово <span class="count" id="count-done">0</span></div></div><div class="task-list" id="list-done"></div></section>
+  </section>
+  <p class="footer-note">Перетаскивайте карточки между колонками или используйте стрелки. Подзадачи сохраняются в памяти сервера.</p>
+</main>
+<div class="toast-region" id="toastRegion" aria-live="polite"></div>
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <form class="modal" id="taskForm">
+    <h2 id="modalTitle">Новая задача</h2><p class="modal-copy">Добавьте задачу на доску. Её можно будет перемещать между колонками.</p>
+    <div class="field"><label for="taskTitle">Название *</label><input id="taskTitle" name="title" maxlength="200" required placeholder="Например, запустить новый проект"></div>
+    <div class="field"><label for="taskDescription">Описание</label><textarea id="taskDescription" name="description" maxlength="5000" placeholder="Что нужно сделать и какой результат ожидается?"></textarea></div>
+    <div class="modal-actions"><button type="button" class="secondary" id="cancelCreate">Отмена</button><button class="primary" type="submit" id="saveTask">Создать задачу</button></div>
+  </form>
+</div>
+<script>
+'use strict';
+
+const COLUMNS = [
+  { id: 'backlog', label: 'Бэклог', empty: 'Здесь пока пусто. Добавьте первую задачу.' },
+  { id: 'in-progress', label: 'В процессе', empty: 'Перетащите сюда задачу, над которой работаете.' },
+  { id: 'done', label: 'Готово', empty: 'Выполненные задачи появятся здесь.' }
+];
+
+const state = { tasks: [], busyIds: new Set(), online: false };
+const $ = (selector, root = document) => root.querySelector(selector);
+const board = $('#board');
+const backdrop = $('#modalBackdrop');
+const form = $('#taskForm');
+const titleInput = $('#taskTitle');
+const descriptionInput = $('#taskDescription');
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[character]);
+}
+
+function toast(message, type = 'success') {
+  const element = document.createElement('div');
+  element.className = 'toast' + (type === 'error' ? ' error' : '');
+  element.textContent = message;
+  $('#toastRegion').append(element);
+  window.setTimeout(() => element.remove(), 3600);
+}
+
+async function api(url, options = {}) {
+  let response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+    });
+  } catch {
+    setConnection(false);
+    throw new Error('Не удалось подключиться к серверу. Проверьте, что приложение запущено.');
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error('Сервер вернул некорректный ответ.');
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error?.message || 'Ошибка запроса (' + response.status + ').');
+  }
+
+  setConnection(true);
+  return data;
+}
+
+function setConnection(online) {
+  state.online = online;
+  $('#statusDot').classList.toggle('offline', !online);
+  $('#statusText').textContent = online ? 'Сервер подключён' : 'Нет соединения';
+}
+
+function openModal() {
+  form.reset();
+  backdrop.classList.add('open');
+  window.setTimeout(() => titleInput.focus(), 0);
+}
+
+function closeModal() {
+  backdrop.classList.remove('open');
+  $('#openCreate').focus();
+}
+
+function getTask(id) {
+  return state.tasks.find(task => task.id === id);
+}
+
+function renderSubtasks(task) {
+  if (!task.subtasksGenerated) return '';
+  const completed = task.subtasks.filter(item => item.completed).length;
+  return '<div class="subtasks"><div class="subtasks-heading"><span>✦ Подзадачи</span><span>' +
+    completed + '/' + task.subtasks.length + '</span></div>' +
+    task.subtasks.map(item => '<div class="subtask"><input type="checkbox" id="sub-' +
+      escapeHtml(item.id) + '" data-subtask="' + escapeHtml(item.id) + '" data-task="' +
+      escapeHtml(task.id) + '"' + (item.completed ? ' checked' : '') +
+      '><label for="sub-' + escapeHtml(item.id) + '">' + escapeHtml(item.title) +
+      '</label></div>').join('') + '</div>';
+}
+
+function renderTask(task) {
+  const index = COLUMNS.findIndex(column => column.id === task.column);
+  const previous = index > 0 ? COLUMNS[index - 1] : null;
+  const next = index < COLUMNS.length - 1 ? COLUMNS[index + 1] : null;
+  const busy = state.busyIds.has(task.id);
+  const totalSubtasks = task.subtasks.length;
+  const checked = task.subtasks.filter(item => item.completed).length;
+
+  return '<article class="task-card" draggable="true" data-task-card="' + escapeHtml(task.id) + '" tabindex="0" aria-label="' + escapeHtml(task.title) + '">' +
+    '<div class="task-meta"><span class="tag">' + escapeHtml(task.column === 'done' ? 'Завершение' : task.column === 'in-progress' ? 'В работе' : 'Задача') + '</span><span class="task-date">' + (totalSubtasks ? checked + '/' + totalSubtasks + ' подзадач' : new Date(task.createdAt).toLocaleDateString('ru-RU')) + '</span></div>' +
+    '<h3>' + escapeHtml(task.title) + '</h3>' +
+    (task.description ? '<p class="task-description">' + escapeHtml(task.description) + '</p>' : '') +
+    '<div class="card-actions">' +
+    '<button class="ai-button" type="button" data-action="suggest" data-id="' + escapeHtml(task.id) + '"' + (busy ? ' disabled' : '') + '>' + (busy ? '◌ Генерируем…' : '✦ Сгенерировать подзадачи от ИИ') + '</button>' +
+    (previous ? '<button class="move-button" type="button" title="Переместить: ' + previous.label + '" aria-label="Переместить в ' + previous.label + '" data-action="move" data-id="' + escapeHtml(task.id) + '" data-column="' + previous.id + '">←</button>' : '') +
+    (next ? '<button class="move-button" type="button" title="Переместить: ' + next.label + '" aria-label="Переместить в ' + next.label + '" data-action="move" data-id="' + escapeHtml(task.id) + '" data-column="' + next.id + '">→</button>' : '') +
+    '</div>' + renderSubtasks(task) + '</article>';
+}
+
+function render() {
+  for (const column of COLUMNS) {
+    const items = state.tasks.filter(task => task.column === column.id);
+    $('#count-' + column.id).textContent = String(items.length);
+    const list = $('#list-' + column.id);
+    list.innerHTML = items.length ? items.map(renderTask).join('') :
+      '<div class="empty"><span class="empty-symbol">＋</span><span>' + column.empty + '</span></div>';
+  }
+
+  $('#totalStat').textContent = String(state.tasks.length);
+  $('#progressStat').textContent = String(state.tasks.filter(task => task.column === 'in-progress').length);
+  $('#doneStat').textContent = String(state.tasks.filter(task => task.column === 'done').length);
+
+  const subtasks = state.tasks.flatMap(task => task.subtasks);
+  const completed = subtasks.filter(item => item.completed).length;
+  $('#subtaskStat').textContent = subtasks.length ? Math.round(completed / subtasks.length * 100) + '%' : '0%';
+}
+
+async function loadTasks() {
+  try {
+    const data = await api('/api/tasks');
+    state.tasks = data.tasks;
+    render();
+  } catch (error) {
+    toast(error.message, 'error');
+  }
+}
+
+async function createTask(event) {
+  event.preventDefault();
+  const submit = $('#saveTask');
+  submit.disabled = true;
+  submit.textContent = 'Создаём…';
+
+  try {
+    const data = await api('/api/tasks', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: titleInput.value,
+        description: descriptionInput.value,
+        column: 'backlog'
+      })
+    });
+    state.tasks.unshift(data.task);
+    render();
+    closeModal();
+    toast('Задача создана.');
+  } catch (error) {
+    toast(error.message, 'error');
+  } finally {
+    submit.disabled = false;
+    submit.textContent = 'Создать задачу';
+  }
+}
+
+async function moveTask(id, column) {
+  const task = getTask(id);
+  if (!task || task.column === column) return;
+  const oldColumn = task.column;
+  task.column = column;
+  render();
+
+  try {
+    const data = await api('/api/tasks/' + encodeURIComponent(id), {
+      method: 'PUT',
+      body: JSON.stringify({ column })
+    });
+    Object.assign(task, data.task);
+    render();
+    toast('Перемещено: ' + COLUMNS.find(item => item.id === column).label + '.');
+  } catch (error) {
+    task.column = oldColumn;
+    render();
+    toast(error.message, 'error');
+  }
+}
+
+async function suggestSubtasks(id) {
+  if (state.busyIds.has(id)) return;
+  state.busyIds.add(id);
+  render();
+
+  try {
+    const data = await api('/api/tasks/' + encodeURIComponent(id) + '/suggest-subtasks', {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
+    const task = getTask(id);
+    if (task) {
+      task.subtasks = data.subtasks;
+      task.subtasksGenerated = true;
+    }
+    render();
+    toast('Подзадачи готовы. Отметьте выполненные пункты.');
+  } catch (error) {
+    toast(error.message, 'error');
+  } finally {
+    state.busyIds.delete(id);
+    render();
+  }
+}
+
+async function toggleSubtask(taskId, subtaskId, completed) {
+  const task = getTask(taskId);
+  const subtask = task?.subtasks.find(item => item.id === subtaskId);
+  if (!subtask) return;
+  subtask.completed = completed;
+  render();
+  try {
+    await api('/api/tasks/' + encodeURIComponent(taskId) + '/subtasks/' + encodeURIComponent(subtaskId), {
+      method: 'PATCH',
+      body: JSON.stringify({ completed })
+    });
+  } catch {
+    toast('Изменение отмечено только в текущем интерфейсе: API пока не сохраняет чекбоксы.', 'error');
+  }
+}
+
+$('#openCreate').addEventListener('click', openModal);
+$('#cancelCreate').addEventListener('click', closeModal);
+form.addEventListener('submit', createTask);
+backdrop.addEventListener('click', event => {
+  if (event.target === backdrop) closeModal();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && backdrop.classList.contains('open')) closeModal();
+});
+
+board.addEventListener('click', event => {
+  const button = event.target.closest('button[data-action]');
+  if (button) {
+    const { action, id, column } = button.dataset;
+    if (action === 'move') moveTask(id, column);
+    if (action === 'suggest') suggestSubtasks(id);
+    return;
+  }
+
+  const checkbox = event.target.closest('input[data-subtask]');
+  if (checkbox) toggleSubtask(checkbox.dataset.task, checkbox.dataset.subtask, checkbox.checked);
+});
+
+board.addEventListener('change', event => {
+  const checkbox = event.target.closest('input[data-subtask]');
+  if (checkbox) toggleSubtask(checkbox.dataset.task, checkbox.dataset.subtask, checkbox.checked);
+});
+
+board.addEventListener('dragstart', event => {
+  const card = event.target.closest('[data-task-card]');
+  if (!card) return;
+  event.dataTransfer.setData('text/plain', card.dataset.taskCard);
+  event.dataTransfer.effectAllowed = 'move';
+  card.classList.add('dragging');
+});
+
+board.addEventListener('dragend', event => {
+  const card = event.target.closest('[data-task-card]');
+  if (card) card.classList.remove('dragging');
+  board.querySelectorAll('.drag-over').forEach(element => element.classList.remove('drag-over'));
+});
+
+board.querySelectorAll('.column').forEach(column => {
+  column.addEventListener('dragover', event => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    column.classList.add('drag-over');
+  });
+  column.addEventListener('dragleave', event => {
+    if (!column.contains(event.relatedTarget)) column.classList.remove('drag-over');
+  });
+  column.addEventListener('drop', event => {
+    event.preventDefault();
+    column.classList.remove('drag-over');
+    const id = event.dataTransfer.getData('text/plain');
+    if (id) moveTask(id, column.dataset.column);
+  });
+});
+
+loadTasks();
+</script>
+</body>
+</html>
