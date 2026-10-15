@@ -38,6 +38,68 @@ function serialize(task) {
   return { ...task, subtasks: task.subtasks.map(item => ({ ...item })) };
 }
 
+function fallbackSubtasks(task) {
+  return [
+    { title: 'Уточнить требования и критерии успеха', description: 'Определить ожидаемый результат и ограничения.' },
+    { title: 'Подготовить план реализации', description: 'Разбить работу на понятные последовательные шаги.' },
+    { title: 'Выполнить основную работу', description: 'Реализовать задачу: ' + task.title },
+    { title: 'Проверить результат', description: 'Протестировать сценарии и исправить найденные ошибки.' }
+  ];
+}
+
+async function generateSubtasks(task) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return { provider: 'template', items: fallbackSubtasks(task) };
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        temperature: 0.4,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content: 'Ты помощник по управлению задачами. Верни JSON-объект вида {"subtasks":[{"title":"...","description":"..."}]}. Ровно 4 конкретные, последовательные подзадачи на русском языке. Заголовок до 100 символов, описание до 240 символов. Не добавляй поля.'
+          },
+          {
+            role: 'user',
+            content: 'Название задачи: ' + task.title + '\nОписание: ' + (task.description || 'не указано')
+          }
+        ]
+      }),
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (!response.ok) throw new Error('OpenAI API returned HTTP ' + response.status);
+    const payload = await response.json();
+    const content = payload.choices?.[0]?.message?.content;
+    if (typeof content !== 'string') throw new Error('OpenAI response has no message content');
+    const parsed = JSON.parse(content);
+    if (!Array.isArray(parsed.subtasks) || parsed.subtasks.length !== 4) {
+      throw new Error('OpenAI response must contain exactly four subtasks');
+    }
+    const items = parsed.subtasks.map((item, index) => {
+      if (!item || typeof item.title !== 'string' || typeof item.description !== 'string') {
+        throw new Error('OpenAI returned an invalid subtask at index ' + index);
+      }
+      const title = item.title.trim().slice(0, 100);
+      const description = item.description.trim().slice(0, 240);
+      if (!title) throw new Error('OpenAI returned an empty subtask title');
+      return { title, description };
+    });
+    return { provider: 'openai', items };
+  } catch (error) {
+    console.error('AI generation failed; using fallback templates:', error.message);
+    return { provider: 'template-fallback', items: fallbackSubtasks(task) };
+  }
+}
+
 app.get('/api/health', (req, res) => res.json({ status: 'ok', tasks: tasks.length }));
 
 app.get('/api/tasks', (req, res) => {
@@ -55,7 +117,10 @@ app.post('/api/tasks', (req, res) => {
   const column = req.body.column ?? 'backlog';
   if (!COLUMNS.has(column)) throw new ApiError(400, 'INVALID_COLUMN', 'Invalid column');
   const now = new Date().toISOString();
-  const task = { id: randomUUID(), title, description, column, subtasks: [], subtasksGenerated: false, createdAt: now, updatedAt: now };
+  const task = {
+    id: randomUUID(), title, description, column, subtasks: [],
+    subtasksGenerated: false, createdAt: now, updatedAt: now
+  };
   tasks.unshift(task);
   res.status(201).json({ task: serialize(task) });
 });
@@ -82,18 +147,19 @@ app.put('/api/tasks/:id', (req, res) => {
   res.json({ task: serialize(task) });
 });
 
-app.post('/api/tasks/:id/suggest-subtasks', (req, res) => {
-  const task = getTask(req.params.id);
-  const title = task.title;
-  task.subtasks = [
-    { title: 'Уточнить требования и критерии успеха', description: 'Определить ожидаемый результат и ограничения.' },
-    { title: 'Подготовить план реализации', description: 'Разбить работу на понятные последовательные шаги.' },
-    { title: 'Выполнить основную работу', description: 'Реализовать задачу: ' + title },
-    { title: 'Проверить результат', description: 'Протестировать сценарии и исправить найденные ошибки.' }
-  ].map(item => ({ id: randomUUID(), ...item, completed: false }));
-  task.subtasksGenerated = true;
-  task.updatedAt = new Date().toISOString();
-  res.json({ taskId: task.id, provider: 'demo', subtasks: task.subtasks });
+app.post('/api/tasks/:id/suggest-subtasks', async (req, res, next) => {
+  try {
+    const task = getTask(req.params.id);
+    const generated = await generateSubtasks(task);
+    task.subtasks = generated.items.map(item => ({
+      id: randomUUID(), title: item.title, description: item.description, completed: false
+    }));
+    task.subtasksGenerated = true;
+    task.updatedAt = new Date().toISOString();
+    res.json({ taskId: task.id, provider: generated.provider, subtasks: task.subtasks });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.patch('/api/tasks/:id/subtasks/:subtaskId', (req, res) => {
@@ -145,4 +211,4 @@ function shutdown() {
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
-module.exports = { app, server, tasks };
+module.exports = { app, server, tasks, generateSubtasks };
